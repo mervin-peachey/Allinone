@@ -136,10 +136,9 @@ body { font-family: 'Source Sans 3', sans-serif; background: var(--bg); color: v
 }
 .btn-generate:hover { background: var(--grey2); }
 .btn-brand {
-  padding: 7px 14px; background: var(--brand); color: white !important; border: none;
+  padding: 7px 14px; background: var(--brand); color: white; border: none;
   border-radius: var(--radius); font-size: 12px; font-weight: 700;
   cursor: pointer; white-space: nowrap; transition: background 0.15s;
-  text-decoration: none; display: inline-flex; align-items: center;
 }
 .btn-brand:hover { background: var(--brand2); }
 .btn-calc {
@@ -710,7 +709,7 @@ function renderStylePhotos() {
         ${existing ? '✅ ' + existing.filename : '— not set'}
       </span>
       ${existing ? `<button class="btn-danger" onclick="clearStylePhoto('${style.replace(/'/g,"\'")}')">✕</button>` : ''}
-      <label class="btn-brand" style="cursor:pointer;font-size:11px;padding:4px 10px;color:white">
+      <label class="btn-brand" style="cursor:pointer;font-size:11px;padding:4px 10px">
         Browse
         <input type="file" accept="image/*" style="display:none"
           onchange="handleStylePhotoUpload(this,'${style.replace(/'/g,"\'")}')">
