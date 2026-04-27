@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eagle Buildings of Goshen — Sticker & Quote Generator</title>
+<link rel="stylesheet" href="style.css">
+<!-- Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+
+<!-- ── HEADER ─────────────────────────────────────────────────────────────── -->
+<header class="app-header">
+  <img src="eagle_logo_white_outline.png" alt="Eagle Buildings" class="header-logo" onerror="this.style.display='none'">
+  <div class="header-right">
+    <span class="header-sub">Sticker &amp; Quote Generator</span>
+  </div>
+</header>
+<div class="header-stripe"></div>
+
+<!-- ── TABS ──────────────────────────────────────────────────────────────── -->
+<nav class="tab-nav">
+  <button class="tab-btn active" data-tab="generate">Generate</button>
+  <button class="tab-btn" data-tab="batch">Batch Import</button>
+  <button class="tab-btn" data-tab="quote">Quote</button>
+  <button class="tab-btn" data-tab="settings">Settings</button>
+</nav>
+
+<!-- ── TAB PANELS ────────────────────────────────────────────────────────── -->
+<main class="tab-body">
+
+  <!-- GENERATE TAB -->
+  <div id="tab-generate" class="tab-panel active">
+    <div class="panel-scroll">
+      <div class="form-grid">
+        <div class="form-col">
+          <div class="section-card">
+            <div class="section-head">SHED INFORMATION</div>
+            <div class="section-body">
+              <div class="field"><label>Size (e.g. 12x16)</label><input id="g-size" type="text" placeholder="12x16"></div>
+              <div class="field"><label>Stock / Serial #</label><input id="g-serial" type="text" placeholder="CCPA-1216-0825-01872"></div>
+              <div class="field"><label>Style</label>
+                <select id="g-style">
+                  <option>Barn</option><option>Cape Cod</option><option>Cabin</option>
+                  <option>Lofted Corner Porch</option><option>Cottage Shed</option>
+                  <option>Deluxe Utility</option><option>Greenhouse</option>
+                  <option>Lofted Garage</option><option>Portable Garage</option>
+                  <option>Garden Shed</option><option>Lofted Cabin</option>
+                  <option>Lofted Garden Shed</option><option>Lofted Barn</option>
+                  <option>Utility</option><option>Deluxe Cabin</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-head">FEATURES <span class="section-hint">(first line = heading)</span></div>
+            <div class="section-body">
+              <textarea id="g-features" rows="8">Features
+Eagle Buildings Quality Includes-
+16" OC Floor Joists with 4x6 Pressure Treated Skids
+LP Prostruct Engineered Flooring with 10yr. Limited Warranty
+LP Siding with 5/50yr Warranty
+40yr Metal Roofing Warranty
+7yr Craftsmanship Warranty
+Free Delivery Within 50mi.</textarea>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-head">SHED PHOTO</div>
+            <div class="section-body">
+              <div class="drop-zone" id="g-drop-zone" onclick="document.getElementById('g-photo-input').click()">
+                <div class="drop-icon">📷</div>
+                <div class="drop-text">Click to select or drag a photo here</div>
+                <div class="drop-name" id="g-drop-name"></div>
+                <img id="g-photo-preview" class="photo-preview" alt="">
+              </div>
+              <input type="file" id="g-photo-input" accept="image/*" style="display:none">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-col">
+          <div class="section-card">
+            <div class="section-head">PRICING</div>
+            <div class="section-body">
+              <div class="field"><label>Cash Price</label>
+                <input id="g-cash" type="text" placeholder="$8,935" oninput="autoRTO('g-cash','g-rto')">
+              </div>
+              <div class="field field-row">
+                <div class="field-inner"><label>60-Mo RTO (auto)</label><input id="g-rto" type="text" placeholder="$330.93/mo"></div>
+                <button class="btn-calc" onclick="autoRTO('g-cash','g-rto')">Calc</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-head">CONTACTS <span class="section-hint">(one per line)</span></div>
+            <div class="section-body">
+              <textarea id="g-contacts" rows="2">(574) 900-3144</textarea>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-head">LINKS &amp; TAGLINE</div>
+            <div class="section-body">
+              <div class="field"><label>Product Page URL</label><input id="g-url" type="url" value="https://eaglebuildingsllc.com"></div>
+              <div class="field"><label>Bottom Tagline</label><input id="g-tagline" type="text" value="FREE DELIVERY &amp; SETUP UP TO 50 MILES"></div>
+              <label class="check-row"><input type="checkbox" id="g-qr" checked><span>Include QR code on sticker</span></label>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-head">LOCATION</div>
+            <div class="section-body">
+              <div class="field">
+                <label>Active Location</label>
+                <select id="g-location-select" onchange="applyLocationToGenerate()"></select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-footer">
+      <div class="footer-stripe"></div>
+      <button class="btn-generate" onclick="generateSticker()">⬇ Generate Window Sticker PDF</button>
+      <div class="footer-status" id="g-status"></div>
+    </div>
+  </div>
+
+  <!-- BATCH TAB -->
+  <div id="tab-batch" class="tab-panel">
+    <div class="batch-toolbar">
+      <button class="btn-tool btn-primary" onclick="importCSV()">📂 Import CSV</button>
+      <button class="btn-tool" onclick="selectAllBatch(true)">☑ Select All</button>
+      <button class="btn-tool" onclick="selectAllBatch(false)">☐ Deselect All</button>
+      <span class="batch-info" id="batch-info">No CSV loaded</span>
+    </div>
+    <div class="batch-hint">Double-click a row to edit photo &amp; QR URL &nbsp;|&nbsp; Click checkbox to toggle</div>
+    <input type="file" id="csv-input" accept=".csv" style="display:none" onchange="loadCSV(this)">
+    <div class="table-wrap">
+      <table class="batch-table" id="batch-table">
+        <thead><tr>
+          <th class="col-check">✓</th>
+          <th>Stock #</th><th>Style</th><th>Size</th>
+          <th>Color/Trim</th><th>Price</th><th>Photo</th><th>QR URL</th>
+        </tr></thead>
+        <tbody id="batch-tbody"></tbody>
+      </table>
+    </div>
+    <div class="panel-footer">
+      <div class="footer-stripe"></div>
+      <button class="btn-generate" onclick="generateBatch()">⬇ Generate Selected Stickers (One PDF)</button>
+      <div class="footer-status" id="batch-status"></div>
+    </div>
+  </div>
+
+  <!-- QUOTE TAB -->
+  <div id="tab-quote" class="tab-panel">
+    <div class="panel-scroll">
+      <div class="form-grid">
+        <div class="form-col">
+          <div class="section-card">
+            <div class="section-head">CUSTOMER INFORMATION</div>
+            <div class="section-body">
+              <div class="field"><label>Customer Name</label><input id="q-name" type="text" placeholder="John Smith"></div>
+              <div class="field"><label>ZIP Code</label><input id="q-zip" type="text" placeholder="46526"></div>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-head">BUILDING SPECIFICATIONS</div>
+            <div class="section-body">
+              <div class="field"><label>Type of Building</label>
+                <select id="q-type">
+                  <option>Storage Shed (70in Double Doors)</option>
+                  <option>Garage (9x7 Roll-Up Door)</option>
+                  <option>Cabin (6ft Porch included in length)</option>
+                </select>
+              </div>
+              <div class="field"><label>Roof Style</label>
+                <select id="q-roof">
+                  <option>Deluxe Style (7/12 A-Frame w/Loft)</option>
+                  <option>Lofted Barn Style (Classic Hip Roof Style)</option>
+                  <option>A-Frame (4/12 Roof Pitch)</option>
+                </select>
+              </div>
+              <div class="field"><label>Size</label><input id="q-size" type="text" placeholder="10 ft × 12 ft" value="10 ft × 12 ft"></div>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-head">SHED SKETCH IMAGE</div>
+            <div class="section-body">
+              <div class="drop-zone" id="q-drop-zone" onclick="document.getElementById('q-photo-input').click()">
+                <div class="drop-icon">📐</div>
+                <div class="drop-text">Click to select shed sketch image</div>
+                <div class="drop-name" id="q-drop-name">Using default shed image</div>
+              </div>
+              <input type="file" id="q-photo-input" accept="image/*" style="display:none">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-col">
+          <div class="section-card">
+            <div class="section-head">PRICING</div>
+            <div class="section-body">
+              <div class="field"><label>Building Price ($)</label>
+                <input id="q-price" type="text" placeholder="8935">
+              </div>
+              <div class="field"><label>State / Tax Rate</label>
+                <select id="q-state">
+                  <option value="IN">IN — Indiana (7%)</option>
+                  <option value="MI">MI — Michigan (6%)</option>
+                </select>
+              </div>
+              <div class="field-note">Tax &amp; RTO calculated automatically</div>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-head">NOTES (optional)</div>
+            <div class="section-body">
+              <textarea id="q-notes" rows="4" placeholder="Any additional notes for the customer..."></textarea>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-head">LOCATION</div>
+            <div class="section-body">
+              <div class="field"><label>Location Name</label><input id="q-loc-name" type="text" value="Eagle Buildings of Goshen"></div>
+              <div class="field"><label>Address</label><input id="q-loc-address" type="text" value="2602 Lincolnway E, Goshen, IN 46526"></div>
+              <div class="field"><label>Phone</label><input id="q-loc-phone" type="text" value="(574) 900-3144"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-footer">
+      <div class="footer-stripe"></div>
+      <button class="btn-generate" onclick="generateQuote()">⬇ Generate PDF Quote</button>
+      <div class="footer-status" id="q-status"></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS TAB -->
+  <div id="tab-settings" class="tab-panel">
+    <div class="panel-scroll">
+      <div class="settings-body">
+
+        <div class="section-card">
+          <div class="section-head">LOCATIONS</div>
+          <div class="section-body">
+            <div class="field field-row">
+              <div class="field-inner"><label>Active Location</label>
+                <select id="s-active-loc" onchange="saveSettings()"></select>
+              </div>
+              <button class="btn-brand" onclick="addLocation()">+ Add Location</button>
+            </div>
+            <div id="s-locations-list"></div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-head">DEFAULT FEATURES TEXT</div>
+          <div class="section-body">
+            <textarea id="s-features" rows="8">Features
+Eagle Buildings Quality Includes-
+16" OC Floor Joists with 4x6 Pressure Treated Skids
+LP Prostruct Engineered Flooring with 10yr. Limited Warranty
+LP Siding with 5/50yr Warranty
+40yr Metal Roofing Warranty
+7yr Craftsmanship Warranty
+Free Delivery Within 50mi.</textarea>
+          </div>
+        </div>
+
+        <button class="btn-generate" onclick="saveSettings(); showStatus('s-status','✅ Settings saved','ok')">💾 Save Settings</button>
+        <div class="footer-status" id="s-status" style="margin-top:10px"></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- EDIT ROW MODAL -->
+<div id="edit-modal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <div class="modal-head" id="modal-title">Edit Shed</div>
+    <div class="modal-body">
+      <div class="field"><label>Size</label><input id="m-size" type="text"></div>
+      <div class="field"><label>Style</label><input id="m-style" type="text"></div>
+      <div class="field"><label>Cash Price</label><input id="m-cash" type="text" oninput="autoRTO('m-cash','m-rto')"></div>
+      <div class="field"><label>60-Mo RTO</label><input id="m-rto" type="text"></div>
+      <div class="field"><label>Product URL</label><input id="m-url" type="text"></div>
+      <label class="check-row"><input type="checkbox" id="m-qr" checked><span>Include QR code</span></label>
+      <div class="field" style="margin-top:10px">
+        <label>Photo</label>
+        <div class="field-row" style="gap:8px;align-items:center">
+          <input id="m-photo-display" type="text" readonly style="flex:1;font-size:11px">
+          <button class="btn-brand" onclick="document.getElementById('m-photo-input').click()">Browse</button>
+          <input type="file" id="m-photo-input" accept="image/*" style="display:none" onchange="handleModalPhoto(this)">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-muted" onclick="closeModal()">Cancel</button>
+      <button class="btn-generate" style="padding:8px 24px;font-size:14px" onclick="saveModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden QR holder -->
+<div id="qr-holder" style="position:fixed;left:-9999px;top:0"></div>
+
+<!-- Scripts -->
+<script src="images.js"></script>
+<script src="settings.js"></script>
+<script src="sticker.js"></script>
+<script src="batch.js"></script>
+<script src="quote.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
